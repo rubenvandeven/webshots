@@ -5,7 +5,8 @@ the given browser resolution and save it as a PNG file.
 Written by Ramiro Gómez http://ramiro.org/
 MIT licensed: http://rg.mit-license.org/
 */
-var page = require('webpage').create(),
+var args = require('system').args,
+    page = require('webpage').create(),
     re_trim = /^https?:\/\/|\/$/g,
     re_conv = /[^\w\.-]/g
 
@@ -16,7 +17,7 @@ var url2filename = function(url, w, h) {
         + '.' + w + 'x' + h + '.png'
 }
 
-var webshot = function(url, w, h) {
+var webshot = function(url, w, h, dir) {
     page.viewportSize = { width: w, height: h }
     page.open(url, function(status) {
         if (status !== 'success') {
@@ -25,7 +26,7 @@ var webshot = function(url, w, h) {
         } else {
             window.setTimeout(function() {
                 page.clipRect = { top: 0, left: 0, width: w, height: h }
-                f = url2filename(url, w, h)
+                f = dir + '/' + url2filename(url, w, h)
                 page.evaluate(function() {
                     if ('transparent' === document.defaultView.getComputedStyle(document.body).getPropertyValue('background-color')) {
                         document.body.style.backgroundColor = '#fff';
@@ -39,11 +40,10 @@ var webshot = function(url, w, h) {
     })
 }
 
-// phantom.args is deprecated in favor of system.args, but version 1.4.0 does
-// not seem to support the system module.
-if (3 !== phantom.args.length) {
-    console.log('Usage: phantomjs webshots.js http://example.com 1024 768')
+// phantom now favours system args
+if (5 !== args.length) {
+    console.log('Usage: phantomjs webshots.js http://example.com 1024 768 target_directory')
     phantom.exit()
 } else {
-    webshot(phantom.args[0], phantom.args[1], phantom.args[2])
+    webshot(args[1], args[2], args[3], args[4])
 }
